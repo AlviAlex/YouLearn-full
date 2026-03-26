@@ -212,6 +212,47 @@ def test_rag_chat_default_mode():
         response = client.post("/api/rag/chat", json=payload)
         assert response.status_code == 200
 
+
+# ── RAG Grounding Tests ──────────────────────────────────────────
+
+@patch('main.get_rag_llm')
+@patch('main.search_context')
+@patch('main.upsert_texts')
+def test_rag_chat_standard_mode_no_docs_returns_warning(mock_upsert, mock_search, mock_llm):
+    """Test that standard mode returns a warning when no documents are found."""
+    mock_search.return_value = ""
+
+    payload = {"question": "What is quantum computing?", "mode": "standard"}
+    response = client.post("/api/rag/chat", json=payload)
+
+    assert response.status_code == 200
+    answer = response.json()["answer"]
+    assert "No relevant documents found" in answer
+    # LLM should NOT be called
+    mock_llm.return_value.invoke.assert_not_called()
+
+
+@patch('main.get_rag_llm')
+@patch('main.search_context')
+@patch('main.upsert_texts')
+def test_rag_chat_standard_mode_with_docs_uses_grounded_prompt(mock_upsert, mock_search, mock_llm):
+    """Test that the prompt forces document-grounded answers when context exists."""
+    mock_search.return_value = "Machine learning is a subset of artificial intelligence."
+
+    mock_llm_instance = MagicMock()
+    mock_llm_instance.invoke.return_value.content = "Based on the document, ML is a subset of AI."
+    mock_llm.return_value = mock_llm_instance
+
+    payload = {"question": "What is machine learning?", "mode": "standard"}
+    response = client.post("/api/rag/chat", json=payload)
+
+    assert response.status_code == 200
+    # Verify the prompt sent to the LLM contains grounding instructions
+    call_args = mock_llm_instance.invoke.call_args[0][0]
+    prompt_text = call_args[0].content
+    assert "ONLY" in prompt_text
+    assert "Do NOT use your general training knowledge" in prompt_text
+
 # ── Utility Function Tests ────────────────────────────────────────
 
 def test_get_text_chunks():

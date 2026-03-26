@@ -1,0 +1,52 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.3, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\Alvin\Desktop\full_youlearn\YouLearn\python-backend\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Alvin\Desktop\full_youlearn\YouLearn\python-backend
+plugins: anyio-4.13.0, langsmith-0.7.22
+collecting ... collected 37 items
+
+test_rag.py::TestQueryPreprocessor::test_stopword_not_in_embedding_query PASSED [  2%]
+test_rag.py::TestQueryPreprocessor::test_prefix_stripping PASSED         [  5%]
+test_rag.py::TestQueryPreprocessor::test_stopwords_filtered_from_keywords PASSED [  8%]
+test_rag.py::TestQueryPreprocessor::test_short_query_fallback PASSED     [ 10%]
+test_rag.py::TestQueryPreprocessor::test_empty_query PASSED              [ 13%]
+test_rag.py::TestHallucinationScanner::test_percentage_detection PASSED  [ 16%]
+test_rag.py::TestHallucinationScanner::test_percentage_in_context_not_flagged PASSED [ 18%]
+test_rag.py::TestHallucinationScanner::test_decimal_percentage PASSED    [ 21%]
+test_rag.py::TestHallucinationScanner::test_year_detection PASSED        [ 24%]
+test_rag.py::TestHallucinationScanner::test_url_detection PASSED         [ 27%]
+test_rag.py::TestDocumentStore::test_conversation_history_initialized PASSED [ 29%]
+test_rag.py::TestDocumentStore::test_add_to_conversation PASSED          [ 32%]
+test_rag.py::TestDocumentStore::test_clear_conversation PASSED           [ 35%]
+test_rag.py::TestRAGEngine::test_generate_routes_through_client PASSED   [ 37%]
+test_rag.py::TestRAGEngine::test_generate_fallback_to_genai PASSED       [ 40%]
+test_rag.py::TestMMRDiversity::test_mmr_selects_diverse_chunks PASSED    [ 43%]
+test_rag.py::TestIntegration::test_full_pipeline_mock PASSED             [ 45%]
+test_main.py::test_chat_success PASSED                                   [ 48%]
+test_main.py::test_chat_no_messages PASSED                               [ 51%]
+test_main.py::test_chat_multiple_messages PASSED                         [ 54%]
+test_main.py::test_chat_api_error PASSED                                 [ 56%]
+test_main.py::test_chat_invalid_payload PASSED                           [ 59%]
+test_main.py::test_chat_system_prompt_is_first PASSED                    [ 62%]
+test_main.py::test_rag_chat_feynman_command PASSED                       [ 64%]
+test_main.py::test_rag_chat_feynman_command_case_insensitive PASSED      [ 67%]
+test_main.py::test_rag_chat_standard_mode PASSED                         [ 70%]
+test_main.py::test_rag_chat_feynman_mode_no_docs PASSED                  [ 72%]
+test_main.py::test_rag_chat_feynman_mode_with_docs PASSED                [ 75%]
+test_main.py::test_rag_chat_saves_to_memory PASSED                       [ 78%]
+test_main.py::test_rag_chat_default_mode PASSED                          [ 81%]
+test_main.py::test_get_text_chunks PASSED                                [ 83%]
+test_main.py::test_get_text_chunks_short_text PASSED                     [ 86%]
+test_main.py::test_get_text_chunks_empty PASSED                          [ 89%]
+test_main.py::test_message_model PASSED                                  [ 91%]
+test_main.py::test_chat_request_model PASSED                             [ 94%]
+test_main.py::test_rag_chat_request_model_defaults PASSED                [ 97%]
+test_main.py::test_rag_chat_request_model_feynman PASSED                 [100%]
+
+============================== warnings summary ===============================
+venv\Lib\site-packages\langchain_core\_api\deprecation.py:25
+  C:\Users\Alvin\Desktop\full_youlearn\YouLearn\python-backend\venv\Lib\site-packages\langchain_core\_api\deprecation.py:25: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+    from pydantic.v1.fields import FieldInfo as FieldInfoV1
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================= 37 passed, 1 warning in 18.54s ========================

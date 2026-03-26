@@ -432,12 +432,12 @@ class RAGEngine:
     def _init_genai_client(self):
         """Initialize Google GenAI client if available."""
         try:
-            import google.generativeai as genai
+            import google.genai as genai
             api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
             if api_key:
-                genai.configure(api_key=api_key)
+                # google-genai doesn't require configure(), it handles auth automatically
                 self.client = genai
-        except ImportError:
+        except (ImportError, ModuleNotFoundError):
             pass
     
     def _generate(self, prompt: str) -> str:
@@ -521,6 +521,19 @@ class RAGEngine:
                 "hallucination_scan": None,
             }
         
+        # Handle empty context for standard mode
+        if mode == "standard" and not docs_context.strip():
+            return {
+                "answer": (
+                    "⚠️ **No relevant documents found.**\n\n"
+                    "I can only answer questions based on your uploaded documents. "
+                    "Please upload a PDF first, then ask your question again."
+                ),
+                "context": "",
+                "preprocessed": preprocessed,
+                "hallucination_scan": None,
+            }
+        
         # Build prompt
         full_prompt = self._build_prompt(
             question=question,
@@ -579,11 +592,14 @@ Include a confidence block at the end:
 </confidence>"""
         else:
             context_section = f"\n\nCONTEXT:\n{context}\n" if context.strip() else ""
-            return f"""{system_prompt}
+            return f"""You are a document-grounded AI tutor.
+You must answer ONLY using the retrieved context below. Do NOT use your general training knowledge.
+If the context does not contain enough information to answer the question, say:
+"The uploaded documents don't contain information about this topic."
 {context_section}
 QUESTION: {question}
 
-Answer the question and include a confidence block at the end:
+Answer the question using ONLY the retrieved context. Include a confidence block at the end:
 <confidence>
   level: HIGH | MEDIUM | LOW
   reason: [explanation]

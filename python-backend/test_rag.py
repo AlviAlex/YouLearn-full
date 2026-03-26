@@ -320,6 +320,32 @@ class TestMMRDiversity:
             f"MMR should prefer diverse doc 2 ({doc2_score:.3f}) over redundant doc 1 ({doc1_score:.3f})"
 
 
+# ── Test RAGEngine Standard Mode Grounding ────────────────────────────────────
+
+class TestRAGEngineGrounding:
+    """Tests for document-grounded answer enforcement."""
+
+    def test_standard_mode_no_docs_returns_warning(self):
+        """Standard mode should return a warning when no document context is found."""
+        with patch('rag_engine.DocumentStore') as MockDocStore:
+            with patch('rag_engine.ChatGroq') as MockChatGroq:
+                # Setup mocks - docs store returns empty, memory returns empty
+                mock_store = MagicMock()
+                mock_store.get_context.return_value = ""
+                mock_store.conversation_history = []
+                MockDocStore.return_value = mock_store
+
+                mock_llm = MagicMock()
+                MockChatGroq.return_value = mock_llm
+
+                engine = RAGEngine()
+                result = engine.query("What is quantum computing?", mode="standard")
+
+                # Should return warning, NOT call LLM
+                assert "No relevant documents found" in result["answer"]
+                mock_llm.invoke.assert_not_called()
+
+
 # ── Integration Tests ──────────────────────────────────────────────────────────
 
 class TestIntegration:

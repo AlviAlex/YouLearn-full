@@ -13,3 +13,4 @@ langchain-text-splitters
 langchain-huggingface
 langchain-groq
 qdrant-client
+google-genai

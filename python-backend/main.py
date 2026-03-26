@@ -300,14 +300,14 @@ def upsert_texts(collection_name: str, texts: list, metadata: dict):
 
 def search_context(collection_name: str, query: str, limit: int = 4, filter_key: str = None):
     query_vector = embeddings.embed_query(query)
-    search_results = qdrant.search(
+    search_results = qdrant.query_points(
         collection_name=collection_name,
-        query_vector=query_vector,
+        query=query_vector,
         limit=limit,
         with_payload=True,
     )
     texts = []
-    for point in search_results:
+    for point in search_results.points:
         payload = point.payload or {}
         if filter_key is None or payload.get("type") == filter_key:
             t = payload.get("text")
@@ -319,7 +319,7 @@ def search_context(collection_name: str, query: str, limit: int = 4, filter_key:
 def get_rag_llm():
     return ChatGroq(
         temperature=0,
-        model_name="llama-3.1-8b-instant",
+        model_name="openai/gpt-oss-120b",
         groq_api_key=GROQ_API_KEY,
     )
 
@@ -463,15 +463,30 @@ USER'S EXPLANATION
 Now validate the user's explanation:"""
     else:
         # Standard mode: answer questions using retrieved context
+        # Guard: if no document context was retrieved, refuse rather than hallucinate
+        if not docs_context.strip():
+            return {
+                "answer": (
+                    "⚠️ **No relevant documents found.**\n\n"
+                    "I can only answer questions based on your uploaded documents. "
+                    "Please upload a PDF using the 📎 button, then ask your question again."
+                )
+            }
+
         context_section = f"""━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 RETRIEVED CONTEXT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 {combined_context}
 
-""" if combined_context.strip() else ""
+"""
 
-        prompt = f"""{YOULEARN_SYSTEM_PROMPT}
+        prompt = f"""You are YouLearn's document-grounded AI tutor.
+You must answer ONLY using the retrieved context below. Do NOT use your general training knowledge.
+If the context does not contain enough information to answer the question, say:
+"The uploaded documents don't contain information about this topic."
+
+{FORMATTING_RULES}
 
 {context_section}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 USER QUESTION
@@ -479,7 +494,7 @@ USER QUESTION
 
 {req.question}
 
-Answer the question{" using the retrieved context and" if combined_context.strip() else ""} following all formatting rules:"""
+Answer the question using ONLY the retrieved context above. Follow all formatting rules. Include a confidence tag at the end:"""
 
     response = llm.invoke([HumanMessage(content=prompt)])
 
